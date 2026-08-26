@@ -22,3 +22,36 @@ export const ratingOptions = [
   },
   { value: 4, label: "Effortless", description: "Recalled it easily" },
 ] as const;
+
+export const importanceOptions = [
+  {
+    value: 0,
+    label: "No review",
+    description: "Meta items and notes you do not need to memorize",
+  },
+  {
+    value: 1,
+    label: "Very rare",
+    description: "About once every one to two years",
+  },
+  {
+    value: 2,
+    label: "Occasional",
+    description: "Useful to revisit, but not often",
+  },
+  {
+    value: 3,
+    label: "Regular",
+    description: "A balanced default review cadence",
+  },
+  {
+    value: 4,
+    label: "Important",
+    description: "Review frequently and retain well",
+  },
+  {
+    value: 5,
+    label: "Must memorize",
+    description: "Make sure this stays memorized",
+  },
+] as const;
