@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { itemSchema, relationshipSchema } from "../lib/validation";
+import { parseNotionDatabaseId } from "../lib/notion/url";
 
 describe("item validation", () => {
   it.each([
@@ -13,6 +14,24 @@ describe("item validation", () => {
     expect(
       itemSchema.safeParse({ title: "Empty", url: "", shortText: "" }).success,
     ).toBe(false);
+  });
+});
+
+describe("Notion database links", () => {
+  it.each([
+    "https://app.notion.com/p/3c7bcc457b588016bd28e4be671892d8?v=abc",
+    "https://www.notion.so/Reading-list-3c7bcc457b588016bd28e4be671892d8",
+    "https://notion.so/3c7bcc45-7b58-8016-bd28-e4be671892d8",
+  ])("extracts the database ID from %s", (url) => {
+    expect(parseNotionDatabaseId(url)).toBe("3c7bcc457b588016bd28e4be671892d8");
+  });
+
+  it.each([
+    "https://example.com/3c7bcc457b588016bd28e4be671892d8",
+    "http://notion.so/3c7bcc457b588016bd28e4be671892d8",
+    "https://notion.so/no-id",
+  ])("rejects unsafe or malformed link %s", (url) => {
+    expect(() => parseNotionDatabaseId(url)).toThrow();
   });
 });
 
