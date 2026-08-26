@@ -41,3 +41,6 @@ export function decryptNotionToken(value: string, owner: string) {
     decipher.final(),
   ]).toString("utf8");
 }
+
+export const encryptNotionSecret = encryptNotionToken;
+export const decryptNotionSecret = decryptNotionToken;

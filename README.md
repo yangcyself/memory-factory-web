@@ -66,7 +66,9 @@ CI runs install, lint, type-check, unit tests, and a production build using harm
 5. In Supabase **Authentication → URL Configuration**, change the Site URL to `https://your-project.vercel.app` and add `https://your-project.vercel.app/auth/callback` to Redirect URLs. Add preview callback patterns only if you intend to test authentication on preview deployments.
 6. Open the Vercel URL, create an account, confirm email if enabled, and exercise the item/review/relationship flow.
 
-Source code changes are not needed between local, preview, and production environments; only the two public environment values differ.
+Source code changes are not needed between local, preview, and production
+environments. Configure the two public Supabase values and the server-only
+Notion encryption key separately for each deployment.
 
 ## Deferred work
 
@@ -75,3 +77,20 @@ Future releases may add OAuth, AI-assisted ingestion, embeddings, external synch
 The proposed product flow, permission model, security boundaries, and delivery
 sequence for the first external source are documented in the
 [Notion watch-list import plan](docs/notion-import-plan.md).
+
+### Notion credential setup
+
+Each user creates a public integration in Notion and saves its OAuth client ID
+and secret from **Import → Set up your Notion integration**. The client secret
+is encrypted before it is stored and is never rendered back to the browser.
+
+The deployment still needs one stable server-side encryption key:
+
+```bash
+openssl rand -base64 32
+```
+
+Save the output as `NOTION_TOKEN_ENCRYPTION_KEY`. It cannot be safely generated
+anew on each application start: losing or changing it makes every stored Notion
+credential undecryptable. Keep it out of source control and use the same value
+across all instances of a deployment.

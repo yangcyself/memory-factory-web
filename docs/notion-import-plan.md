@@ -199,9 +199,11 @@ user and create a `derived_from` edge for imported items.
 - Use the signed-in Supabase server client for every application database write.
   Never use a service-role key and never accept `user_id` from a form or API
   body.
-- Keep the Notion client secret and token-encryption key in server-only
-  environment variables. Only the OAuth callback and server-side Notion client
-  may access them.
+- Store each user's Notion OAuth client secret as encrypted, user-owned data;
+  accept it only in the authenticated setup form and never return it to the
+  browser. Keep the shared token-encryption key in a server-only environment
+  variable. Only server actions, the OAuth callback, and the server-side Notion
+  client may access decrypted credentials.
 - OAuth state is random, single use, expires quickly, and is bound to the current
   user and exact redirect target. Register exact HTTPS callback URLs and do not
   accept an arbitrary post-login redirect.

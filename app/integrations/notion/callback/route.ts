@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { encryptNotionToken } from "@/lib/notion/crypto";
+import { decryptNotionSecret, encryptNotionToken } from "@/lib/notion/crypto";
 
 const tokenResponseSchema = z.object({
   access_token: z.string().min(1),
@@ -26,31 +26,52 @@ export async function GET(request: NextRequest) {
       ),
     );
   const hash = createHash("sha256").update(state).digest("hex");
-  const { data: nextPath, error: stateError } = await supabase.rpc(
+  const { data: consumedStates, error: stateError } = await supabase.rpc(
     "consume_notion_oauth_state",
     { p_state_hash: hash },
   );
-  if (stateError || !nextPath)
+  const consumedState = Array.isArray(consumedStates)
+    ? consumedStates[0]
+    : consumedStates;
+  if (stateError || !consumedState?.integration_setting_id)
     return NextResponse.redirect(
       new URL(
         "/imports/notion?error=Authorization%20expired.%20Please%20try%20again.",
         url.origin,
       ),
     );
-  const clientId = process.env.NOTION_OAUTH_CLIENT_ID;
-  const clientSecret = process.env.NOTION_OAUTH_CLIENT_SECRET;
-  const redirectUri = process.env.NOTION_OAUTH_REDIRECT_URI;
-  if (!clientId || !clientSecret || !redirectUri)
+  const { data: setting } = await supabase
+    .from("notion_integration_settings")
+    .select("client_id,encrypted_client_secret")
+    .eq("id", consumedState.integration_setting_id)
+    .eq("user_id", data.user.id)
+    .maybeSingle();
+  if (!setting)
     return NextResponse.redirect(
       new URL(
-        "/imports/notion?error=Notion%20OAuth%20is%20not%20configured.",
+        "/imports/notion?error=Notion%20integration%20credentials%20were%20not%20found.",
         url.origin,
       ),
     );
+  let clientSecret: string;
+  try {
+    clientSecret = decryptNotionSecret(
+      setting.encrypted_client_secret,
+      `${data.user.id}:notion-client:${setting.client_id}`,
+    );
+  } catch {
+    return NextResponse.redirect(
+      new URL(
+        "/imports/notion?error=Could%20not%20decrypt%20the%20Notion%20credentials.",
+        url.origin,
+      ),
+    );
+  }
+  const redirectUri = new URL("/integrations/notion/callback", url.origin).href;
   const response = await fetch("https://api.notion.com/v1/oauth/token", {
     method: "POST",
     headers: {
-      Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
+      Authorization: `Basic ${Buffer.from(`${setting.client_id}:${clientSecret}`).toString("base64")}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -98,5 +119,7 @@ export async function GET(request: NextRequest) {
         url.origin,
       ),
     );
-  return NextResponse.redirect(new URL(String(nextPath), url.origin));
+  return NextResponse.redirect(
+    new URL(String(consumedState.next_path), url.origin),
+  );
 }

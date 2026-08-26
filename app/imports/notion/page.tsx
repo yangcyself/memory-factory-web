@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { Notice } from "@/components/notice";
-import { addNotionWatchList } from "@/lib/actions/notion";
+import {
+  addNotionWatchList,
+  saveNotionIntegrationSettings,
+} from "@/lib/actions/notion";
 import { requireUser } from "@/lib/auth";
 
 export default async function NotionImportPage({
@@ -9,19 +13,31 @@ export default async function NotionImportPage({
   searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const { error, success } = await searchParams;
+  const requestHeaders = await headers();
+  const host =
+    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
+  const callbackUrl = host
+    ? `${protocol}://${host}/integrations/notion/callback`
+    : "/integrations/notion/callback";
   const { supabase } = await requireUser();
-  const [{ data: connections }, { data: watchLists }] = await Promise.all([
-    supabase
-      .from("notion_connections")
-      .select("id,workspace_name,status")
-      .order("created_at"),
-    supabase
-      .from("notion_watch_lists")
-      .select(
-        "id,name,status,last_checked_at,notion_connections(workspace_name)",
-      )
-      .order("created_at", { ascending: false }),
-  ]);
+  const [{ data: settings }, { data: connections }, { data: watchLists }] =
+    await Promise.all([
+      supabase
+        .from("notion_integration_settings")
+        .select("id,label,client_id")
+        .order("updated_at", { ascending: false }),
+      supabase
+        .from("notion_connections")
+        .select("id,workspace_name,status")
+        .order("created_at"),
+      supabase
+        .from("notion_watch_lists")
+        .select(
+          "id,name,status,last_checked_at,notion_connections(workspace_name)",
+        )
+        .order("created_at", { ascending: false }),
+    ]);
   const connected =
     connections?.filter((item) => item.status === "connected") ?? [];
   return (
@@ -37,6 +53,78 @@ export default async function NotionImportPage({
         </p>
       </div>
       <Notice error={error} success={success} />
+      <details className="card" open={!settings?.length}>
+        <summary className="cursor-pointer text-lg font-bold">
+          Set up your Notion integration
+        </summary>
+        <div className="mt-4 space-y-4 text-sm text-black/70">
+          <ol className="list-decimal space-y-2 pl-5">
+            <li>
+              Open the Notion developer portal and create a public integration.
+            </li>
+            <li>Enable only the read-content capability.</li>
+            <li>
+              Add this exact OAuth redirect URI in Notion:
+              <code className="mt-1 block break-all rounded bg-mist p-2 text-ink">
+                {callbackUrl}
+              </code>
+            </li>
+            <li>
+              Copy the OAuth client ID and client secret into the boxes below.
+            </li>
+          </ol>
+          <p>
+            The secret is encrypted before storage. It is never shown again or
+            sent back to the browser.
+          </p>
+          <p>
+            MemoryFactory automatically creates a fresh encryption nonce for
+            every saved secret. The deployment still needs one stable master
+            encryption key so credentials remain decryptable after restarts.
+          </p>
+        </div>
+        <form action={saveNotionIntegrationSettings} className="mt-5 space-y-4">
+          <label>
+            Integration name
+            <input
+              className="mt-1"
+              name="label"
+              defaultValue="My Notion integration"
+              maxLength={100}
+              required
+            />
+          </label>
+          <label>
+            OAuth client ID
+            <input
+              className="mt-1"
+              name="clientId"
+              autoComplete="off"
+              maxLength={200}
+              required
+            />
+          </label>
+          <label>
+            OAuth client secret
+            <input
+              className="mt-1"
+              type="password"
+              name="clientSecret"
+              autoComplete="new-password"
+              maxLength={500}
+              required
+            />
+          </label>
+          <button className="button-secondary" type="submit">
+            Save credentials
+          </button>
+        </form>
+        {settings?.length ? (
+          <p className="mt-4 text-sm text-black/55">
+            Saved: {settings[0].label} ({settings[0].client_id.slice(0, 8)}…)
+          </p>
+        ) : null}
+      </details>
       <div className="card flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-bold">Workspace access</h2>
@@ -45,7 +133,11 @@ export default async function NotionImportPage({
             edits Notion.
           </p>
         </div>
-        <Link className="button" href="/integrations/notion/start">
+        <Link
+          className={`button ${!settings?.length ? "pointer-events-none opacity-50" : ""}`}
+          aria-disabled={!settings?.length}
+          href="/integrations/notion/start"
+        >
           Connect Notion
         </Link>
       </div>

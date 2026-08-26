@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { notionRequest } from "@/lib/notion/api";
-import { decryptNotionToken } from "@/lib/notion/crypto";
+import { decryptNotionToken, encryptNotionSecret } from "@/lib/notion/crypto";
 import { parseNotionDatabaseId } from "@/lib/notion/url";
 
 const databaseSchema = z.object({
@@ -14,6 +14,53 @@ const databaseSchema = z.object({
     .array(z.object({ id: z.string().min(1), name: z.string().optional() }))
     .optional(),
 });
+
+const integrationSettingsSchema = z.object({
+  label: z.string().trim().min(1, "Give the integration a name.").max(100),
+  clientId: z.string().trim().min(1, "Enter the OAuth client ID.").max(200),
+  clientSecret: z
+    .string()
+    .trim()
+    .min(1, "Enter the OAuth client secret.")
+    .max(500),
+});
+
+export async function saveNotionIntegrationSettings(formData: FormData) {
+  const parsed = integrationSettingsSchema.safeParse({
+    label: formData.get("label"),
+    clientId: formData.get("clientId"),
+    clientSecret: formData.get("clientSecret"),
+  });
+  if (!parsed.success)
+    redirect(
+      `/imports/notion?error=${encodeURIComponent(parsed.error.issues[0].message)}`,
+    );
+  const { supabase, user } = await requireUser();
+  let encryptedClientSecret: string;
+  try {
+    encryptedClientSecret = encryptNotionSecret(
+      parsed.data.clientSecret,
+      `${user.id}:notion-client:${parsed.data.clientId}`,
+    );
+  } catch {
+    redirect(
+      "/imports/notion?error=Credential%20encryption%20is%20not%20configured.%20Ask%20the%20deployment%20owner%20to%20set%20the%20encryption%20key.",
+    );
+  }
+  const { error } = await supabase.from("notion_integration_settings").upsert(
+    {
+      label: parsed.data.label,
+      client_id: parsed.data.clientId,
+      encrypted_client_secret: encryptedClientSecret,
+    },
+    { onConflict: "user_id,client_id" },
+  );
+  if (error)
+    redirect(`/imports/notion?error=${encodeURIComponent(error.message)}`);
+  redirect(
+    "/imports/notion?success=Notion%20integration%20credentials%20saved.",
+  );
+}
 
 export async function addNotionWatchList(formData: FormData) {
   const connectionId = String(formData.get("connectionId") ?? "");
