@@ -10,6 +10,7 @@ export const itemSchema = z
     title: z.string().trim().min(1, "Title is required").max(200),
     url: optionalText.pipe(z.url("Enter a valid URL").nullable()),
     shortText: optionalText.pipe(z.string().max(5000).nullable()),
+    importance: z.coerce.number().int().min(0).max(5),
   })
   .refine(({ url, shortText }) => url !== null || shortText !== null, {
     message: "Add a URL, short text, or both.",
@@ -38,4 +39,29 @@ export const relationshipSchema = z
 export const reviewSchema = z.object({
   itemId: z.uuid(),
   memoryRating: z.coerce.number().int().min(0).max(4),
+  importance: z.coerce.number().int().min(1).max(5),
 });
+
+export const importanceSchema = z.object({
+  itemId: z.uuid(),
+  importance: z.coerce.number().int().min(0).max(5),
+});
+
+export const scheduleAdjustmentSchema = z.discriminatedUnion("action", [
+  z.object({
+    itemId: z.uuid(),
+    action: z.literal("postponed"),
+    postponeDays: z.coerce.number().int().min(1).max(3650),
+  }),
+  z.object({ itemId: z.uuid(), action: z.literal("suspended") }),
+  z.object({
+    itemId: z.uuid(),
+    action: z.literal("resumed"),
+    scheduledAt: z.string().optional(),
+  }),
+  z.object({
+    itemId: z.uuid(),
+    action: z.literal("rescheduled"),
+    scheduledAt: z.string().datetime({ local: true }),
+  }),
+]);

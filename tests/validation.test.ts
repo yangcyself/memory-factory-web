@@ -4,15 +4,35 @@ import { parseNotionDatabaseId } from "../lib/notion/url";
 
 describe("item validation", () => {
   it.each([
-    { title: "URL", url: "https://example.com", shortText: "" },
-    { title: "Text", url: "", shortText: "A memory cue" },
-    { title: "Both", url: "https://example.com/paper", shortText: "My cue" },
+    { title: "URL", url: "https://example.com", shortText: "", importance: 0 },
+    { title: "Text", url: "", shortText: "A memory cue", importance: 3 },
+    {
+      title: "Both",
+      url: "https://example.com/paper",
+      shortText: "My cue",
+      importance: 5,
+    },
   ])("accepts $title content", (value) =>
     expect(itemSchema.safeParse(value).success).toBe(true),
   );
   it("rejects an item without URL or text", () => {
     expect(
-      itemSchema.safeParse({ title: "Empty", url: "", shortText: "" }).success,
+      itemSchema.safeParse({
+        title: "Empty",
+        url: "",
+        shortText: "",
+        importance: 3,
+      }).success,
+    ).toBe(false);
+  });
+  it.each([-1, 6, 2.5])("rejects importance %s", (importance) => {
+    expect(
+      itemSchema.safeParse({
+        title: "Item",
+        url: "",
+        shortText: "Cue",
+        importance,
+      }).success,
     ).toBe(false);
   });
 });

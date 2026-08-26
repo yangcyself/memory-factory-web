@@ -21,6 +21,7 @@ export default async function NewItemPage({
           Title
           <input className="mt-1" name="title" maxLength={200} required />
         </label>
+        <input type="hidden" name="importance" value="1" />
         <label>
           URL <span className="font-normal text-black/55">(optional)</span>
           <input
@@ -40,7 +41,9 @@ export default async function NewItemPage({
           />
         </label>
         <p className="text-sm text-black/55">
-          At least one of URL or short text is required.
+          At least one of URL or short text is required. New items start at
+          importance 1 and are reviewed once before you choose their long-term
+          importance.
         </p>
         <button className="button" type="submit">
           Create item

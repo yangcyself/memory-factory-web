@@ -30,6 +30,7 @@ export default async function RootLayout({
               <Link href="/items">All items</Link>
               <Link href="/items/new">Add item</Link>
               <Link href="/imports/notion">Import</Link>
+              <Link href="/settings">Settings</Link>
               <form action={signOut}>
                 <button className="font-medium" type="submit">
                   Sign out

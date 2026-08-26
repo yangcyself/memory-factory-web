@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDateTime } from "@/lib/date-time";
 
 type ItemCardProps = {
   item: {
@@ -8,9 +9,16 @@ type ItemCardProps = {
     short_text: string | null;
   };
   dueAt?: string;
+  actionLabel?: string;
+  timeZone?: string;
 };
 
-export function ItemCard({ item, dueAt }: ItemCardProps) {
+export function ItemCard({
+  item,
+  dueAt,
+  actionLabel,
+  timeZone = "UTC",
+}: ItemCardProps) {
   let summary = item.short_text?.slice(0, 140);
   if (item.url) {
     try {
@@ -31,8 +39,17 @@ export function ItemCard({ item, dueAt }: ItemCardProps) {
       )}
       {dueAt && (
         <p className="mt-3 text-xs font-medium text-leaf">
-          Due {new Date(dueAt).toLocaleString()}
+          Scheduled for{" "}
+          <time dateTime={dueAt}>{formatDateTime(dueAt, timeZone)}</time>
         </p>
+      )}
+      {actionLabel && (
+        <Link
+          className="button-secondary mt-4 w-full sm:w-fit"
+          href={`/items/${item.id}`}
+        >
+          {actionLabel}
+        </Link>
       )}
     </article>
   );
