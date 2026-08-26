@@ -10,6 +10,11 @@ silently mirrored. A user connects one Notion workspace, explicitly grants the
 integration access to databases, adds selected databases to a watch list, and
 reviews a diff before importing pages as MemoryFactory items.
 
+MemoryFactory imports durable pointers, connections, and only a minimal hint;
+the document remains authoritative at its external URL and is expected to
+change there. Checks therefore discover previously unseen source rows but do
+not mirror later content edits or overwrite an existing MemoryFactory item.
+
 For the first release, run the once-per-local-day check when the signed-in user
 opens MemoryFactory. This keeps every database mutation behind the user's
 authenticated Supabase session and avoids introducing a privileged background
@@ -92,7 +97,7 @@ source if it contains more than one. Persist both `database_id` and
 Then show a small configuration step:
 
 - Source name (defaults to the Notion title)
-- Import rule: new pages only (default), new and changed pages, or manual only
+- Import rule: review new pages before import (default) or manual checks only
 - Property mapping: title, URL, and short text/summary
 - Optional filter (for example, Status = Ready)
 - Prompt frequency: daily (default) or manual
@@ -109,15 +114,16 @@ On the user's first authenticated app load for their local calendar day:
 2. Query the selected Notion data source, following pagination.
 3. Respect `Retry-After` on `429` responses and use bounded retries for
    transient failures. Keep a resumable cursor for large lists.
-4. Compare each page's stable Notion page ID and `last_edited_time` with the
-   latest observed source record.
+4. Compare each stable Notion page ID with imported source records and stage
+   only previously unseen pages. Retain `last_edited_time` as provenance, not as
+   an instruction to mirror later edits.
 5. Save only an import-candidate snapshot needed for the preview. Do not create
    MemoryFactory items yet.
 6. Mark the check complete only after all pages have been evaluated. A failed
    check remains retryable and shows a useful status.
 
-The global notice should say, for example, **“Reading queue has 7 new pages and
-2 updates — review import”**. “No changes” should be quiet and visible only on
+The global notice should say, for example, **“Reading queue has 7 new pages —
+review import”**. “No changes” should be quiet and visible only on
 the source detail screen.
 
 Use the user's saved IANA time zone to calculate the daily boundary. Store
@@ -128,10 +134,9 @@ cause duplicate imports.
 
 The batch screen is the important trust boundary:
 
-- Group rows into **New**, **Updated**, **Already imported**, **Skipped by
-  filter**, and **Needs attention**.
-- Default-select new rows. Do not default-select updates that would overwrite
-  user-edited MemoryFactory fields.
+- Group rows into **New**, **Already imported**, **Skipped by filter**, and
+  **Needs attention**.
+- Default-select clean new rows.
 - Show the mapped title, URL, excerpt, source, Notion edit time, and any mapping
   warning for every candidate.
 - Let the user edit a candidate locally, exclude it, or select all clean rows.
@@ -140,7 +145,8 @@ The batch screen is the important trust boundary:
 
 An imported item keeps its own review schedule and remains available if Notion
 access is later revoked. Provenance should link it to its source and original
-page. “Update available” is a diff, not an automatic overwrite.
+page. Changes at the external URL are normal and do not trigger a local
+overwrite.
 
 ## Proposed data model
 
