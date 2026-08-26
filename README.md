@@ -71,3 +71,7 @@ Source code changes are not needed between local, preview, and production enviro
 ## Deferred work
 
 Future releases may add OAuth, AI-assisted ingestion, embeddings, external synchronization, reminders, a graph canvas, sharing, native clients, legacy migration, analytics, and billing. This MVP intentionally contains no placeholder services for them.
+
+The proposed product flow, permission model, security boundaries, and delivery
+sequence for the first external source are documented in the
+[Notion watch-list import plan](docs/notion-import-plan.md).
