@@ -1,6 +1,7 @@
 import { createItem } from "@/lib/actions/items";
 import { requireUser } from "@/lib/auth";
 import { Notice } from "@/components/notice";
+import { PendingButton } from "@/components/pending-button";
 
 export default async function NewItemPage({
   searchParams,
@@ -45,9 +46,7 @@ export default async function NewItemPage({
           importance 1 and are reviewed once before you choose their long-term
           importance.
         </p>
-        <button className="button" type="submit">
-          Create item
-        </button>
+        <PendingButton pendingLabel="Creating item…">Create item</PendingButton>
       </form>
     </section>
   );

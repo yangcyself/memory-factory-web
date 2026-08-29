@@ -9,6 +9,7 @@ export function RemoveWatchListButton({ name }: { name: string }) {
       className="button-secondary border-red-300 text-red-700 disabled:cursor-wait disabled:opacity-60"
       type="submit"
       disabled={pending}
+      aria-busy={pending}
       onClick={(event) => {
         if (
           !window.confirm(
@@ -18,7 +19,8 @@ export function RemoveWatchListButton({ name }: { name: string }) {
           event.preventDefault();
       }}
     >
-      {pending ? "Removing…" : "Remove from watch lists"}
+      {pending && <span className="button-spinner" aria-hidden="true" />}
+      <span>{pending ? "Removing…" : "Remove from watch lists"}</span>
     </button>
   );
 }

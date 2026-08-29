@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PendingButton } from "@/components/pending-button";
 import { notFound } from "next/navigation";
 import { Notice } from "@/components/notice";
 import {
@@ -130,7 +131,9 @@ export default async function ItemDetailPage({
             ))}
           </select>
         </label>
-        <button className="button-secondary">Update importance</button>
+        <PendingButton className="button-secondary" pendingLabel="Updating…">
+          Update importance
+        </PendingButton>
         <p className="text-sm text-black/55 sm:col-span-2">
           Changing levels 1–5 preserves the current review date; the new cadence
           begins after your next review. Level 0 disables reviews.
@@ -145,7 +148,12 @@ export default async function ItemDetailPage({
               <form action={adjustReviewSchedule}>
                 <input type="hidden" name="itemId" value={id} />
                 <input type="hidden" name="action" value="resumed" />
-                <button className="button-secondary">Resume now</button>
+                <PendingButton
+                  className="button-secondary"
+                  pendingLabel="Resuming…"
+                >
+                  Resume now
+                </PendingButton>
               </form>
             ) : (
               <>
@@ -161,12 +169,22 @@ export default async function ItemDetailPage({
                     <option value="7">1 week</option>
                     <option value="30">30 days</option>
                   </select>
-                  <button className="button-secondary">Postpone</button>
+                  <PendingButton
+                    className="button-secondary"
+                    pendingLabel="Postponing…"
+                  >
+                    Postpone
+                  </PendingButton>
                 </form>
                 <form action={adjustReviewSchedule}>
                   <input type="hidden" name="itemId" value={id} />
                   <input type="hidden" name="action" value="suspended" />
-                  <button className="button-secondary">Suspend</button>
+                  <PendingButton
+                    className="button-secondary"
+                    pendingLabel="Suspending…"
+                  >
+                    Suspend
+                  </PendingButton>
                 </form>
               </>
             )}
@@ -186,7 +204,12 @@ export default async function ItemDetailPage({
                 required
               />
             </label>
-            <button className="button-secondary">Reschedule</button>
+            <PendingButton
+              className="button-secondary"
+              pendingLabel="Rescheduling…"
+            >
+              Reschedule
+            </PendingButton>
           </form>
           <p className="mt-3 text-xs text-black/55">
             Manual controls do not record a completed review. Entered and
@@ -262,7 +285,12 @@ export default async function ItemDetailPage({
                 </span>
               </label>
             ))}
-            <button className="button sm:w-fit">Save review</button>
+            <PendingButton
+              className="button sm:w-fit"
+              pendingLabel="Saving review…"
+            >
+              Save review
+            </PendingButton>
           </form>
         </section>
       )}
@@ -418,9 +446,12 @@ export default async function ItemDetailPage({
                 <option value="0.9">Strong</option>
               </select>
             </label>
-            <button className="button sm:col-span-3 sm:w-fit">
+            <PendingButton
+              className="button sm:col-span-3 sm:w-fit"
+              pendingLabel="Adding relationship…"
+            >
               Add relationship
-            </button>
+            </PendingButton>
           </form>
         ) : (
           <p className="mt-4 text-sm">
