@@ -8,12 +8,14 @@ export function PendingButton({
   className = "button",
   name,
   value,
+  formAction,
 }: {
   children: React.ReactNode;
   pendingLabel: string;
   className?: string;
   name?: string;
   value?: string;
+  formAction?: (formData: FormData) => void | Promise<void>;
 }) {
   const { pending } = useFormStatus();
   return (
@@ -23,8 +25,11 @@ export function PendingButton({
       disabled={pending}
       name={name}
       value={value}
+      formAction={formAction}
+      aria-busy={pending}
     >
-      {pending ? pendingLabel : children}
+      {pending && <span className="button-spinner" aria-hidden="true" />}
+      <span>{pending ? pendingLabel : children}</span>
     </button>
   );
 }

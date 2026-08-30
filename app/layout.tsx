@@ -3,6 +3,7 @@ import Link from "next/link";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/lib/actions/auth";
+import { PendingButton } from "@/components/pending-button";
 
 export const metadata: Metadata = {
   title: "MemoryFactory",
@@ -18,12 +19,15 @@ export default async function RootLayout({
     <html lang="en">
       <body className="min-h-screen antialiased">
         {data.user && (
-          <header className="border-b border-black/10 bg-white">
+          <header className="site-header border-b border-black/10 bg-white">
             <nav
               className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-3 text-sm"
               aria-label="Main navigation"
             >
-              <Link className="mr-auto text-lg font-bold" href="/today">
+              <Link className="brand mr-auto text-lg font-bold" href="/today">
+                <span className="brand-mark" aria-hidden="true">
+                  记
+                </span>
                 MemoryFactory
               </Link>
               <Link href="/today">Today</Link>
@@ -32,9 +36,12 @@ export default async function RootLayout({
               <Link href="/imports/notion">Import</Link>
               <Link href="/settings">Settings</Link>
               <form action={signOut}>
-                <button className="font-medium" type="submit">
+                <PendingButton
+                  className="nav-button"
+                  pendingLabel="Signing out…"
+                >
                   Sign out
-                </button>
+                </PendingButton>
               </form>
             </nav>
           </header>

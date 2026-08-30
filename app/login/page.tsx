@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { signIn, signUp } from "@/lib/actions/auth";
 import { createClient } from "@/lib/supabase/server";
+import { PendingButton } from "@/components/pending-button";
 
 export default async function LoginPage({
   searchParams,
@@ -46,12 +47,16 @@ export default async function LoginPage({
           />
         </label>
         <div className="grid grid-cols-2 gap-3">
-          <button className="button" formAction={signIn}>
+          <PendingButton pendingLabel="Signing in…" formAction={signIn}>
             Sign in
-          </button>
-          <button className="button-secondary" formAction={signUp}>
+          </PendingButton>
+          <PendingButton
+            className="button-secondary"
+            pendingLabel="Creating account…"
+            formAction={signUp}
+          >
             Create account
-          </button>
+          </PendingButton>
         </div>
       </form>
     </section>

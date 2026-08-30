@@ -1,4 +1,5 @@
 import { Notice } from "@/components/notice";
+import { PendingButton } from "@/components/pending-button";
 import { updateReviewPreferences } from "@/lib/actions/preferences";
 import { requireUser } from "@/lib/auth";
 import { getReviewTimeZone } from "@/lib/preferences";
@@ -30,7 +31,9 @@ export default async function SettingsPage({
           Use an IANA time zone such as Europe/London or Asia/Tokyo. Queue
           boundaries and displayed dates use this setting.
         </p>
-        <button className="button">Save settings</button>
+        <PendingButton pendingLabel="Saving settings…">
+          Save settings
+        </PendingButton>
       </form>
       <div className="card mt-6">
         <h2 className="text-lg font-semibold">Advanced scheduling</h2>

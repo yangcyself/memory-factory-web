@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { ItemCard } from "@/components/item-card";
+import { PendingButton } from "@/components/pending-button";
 
 export default async function ItemsPage({
   searchParams,
@@ -32,7 +33,9 @@ export default async function ItemsPage({
           Search titles
         </label>
         <input id="q" name="q" defaultValue={q} placeholder="Search titles" />
-        <button className="button-secondary">Search</button>
+        <PendingButton className="button-secondary" pendingLabel="Searching…">
+          Search
+        </PendingButton>
       </form>
       {error && (
         <p className="mt-6 rounded-lg bg-red-100 p-3">{error.message}</p>

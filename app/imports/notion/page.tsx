@@ -209,9 +209,12 @@ export default async function NotionImportPage({
               required
             />
           </label>
-          <button className="button-secondary" type="submit">
+          <PendingButton
+            className="button-secondary"
+            pendingLabel="Saving credentials…"
+          >
             Save credentials
-          </button>
+          </PendingButton>
         </form>
         {settings?.length ? (
           <p className="mt-4 text-sm text-black/55">
@@ -263,9 +266,9 @@ export default async function NotionImportPage({
               required
             />
           </label>
-          <button className="button" type="submit">
+          <PendingButton pendingLabel="Adding database…">
             Start watching
-          </button>
+          </PendingButton>
         </form>
       )}
       <div>
