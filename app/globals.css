@@ -93,6 +93,8 @@ label {
     );
   }
   .bg-white,
+  .button-secondary,
+  .card,
   .site-header,
   input,
   textarea,
